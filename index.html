@@ -1,0 +1,175 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	
+	<title>SimilarityNet</title>
+	
+	<script type="text/javascript" src="./js/jquery-1.7.1.min.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="main.css" />
+	
+	<script>
+	
+		function doPaste() {
+			
+			var _vectors = [];
+			
+			var _raw = $("#vis_textarea").val();
+			var _rows = _raw.split("\n");
+			
+			
+			// create HTML table and make vectors
+
+			var _html = '<table>';
+			
+			for(var i = 0; i < _rows.length; i++) {
+				
+				_elements = _rows[i].split("\t");
+				
+				_html += '<tr>';
+				
+				for(var j = 0; j < _elements.length; j++) {
+										
+					if(i == 0) {
+						_html += '<th>' + _elements[j] + '</th>';
+						if(j > 0) {
+							_vectors[j-1] = {};
+							_vectors[j-1].name = _elements[j];
+							_vectors[j-1]["data"] = {};
+						}
+					} else {
+						_html += '<td>' + _elements[j] + '</td>';
+						
+						if(j > 0) {
+							_vectors[j-1]["data"][_elements[0]] = parseFloat(_elements[j]);
+						}
+					}
+				}
+				
+				_html += '</tr>';
+			}
+			
+			_html += '</table>';
+			
+			$("#vis_table").html(_html);
+			
+			doVectors(_vectors);
+		}
+		
+		
+		function doVectors(_vectors) {
+
+			console.log(_vectors);
+			
+			var _edges = [];
+			
+			for(var i = 0; i < _vectors.length; i++) {
+				
+				for(var j = i + 1; j < _vectors.length; j++) {
+				
+					//console.log(i + "," + j);
+					
+					_vi = _vectors[i]["data"];
+					_vj = _vectors[j]["data"];
+					
+					// calculate dot product (A . B)
+					var _dotproduct = 0;
+					
+					for(var _dimension in _vi) {
+						_dotproduct += _vi[_dimension] * _vj[_dimension];
+					}
+					
+					// calculate normalized vectors (||A|| * ||B||)
+					var _magnitude = calcMagnitude(_vi) * calcMagnitude(_vj);
+										
+					var _similarity = _dotproduct / _magnitude;
+					
+					_similarity = parseInt(_similarity * 1000);
+					
+					_edges[_edges.length] = i + "," + j + "," + _similarity + "\n";
+					console.log(i + "," + j + "," + _similarity);
+					
+				}
+			}
+			
+			createNet(_vectors,_edges);
+		}
+		
+		
+		function calcMagnitude(_vector) {
+			
+			var _magnitude = 0;
+			
+			for(var _dimension in _vector) {
+				_magnitude += _vector[_dimension] * _vector[_dimension];
+			}
+
+			_magnitude = Math.sqrt(_magnitude);
+			
+			return _magnitude;
+		}
+		
+		
+		function createNet(_vectors,_edges) {
+			
+			var _content = "nodedef>name VARCHAR,label VARCHAR\n";
+			
+			for(var i = 0; i < _vectors.length;i++) {
+				 _content += i + "," + _vectors[i]["name"] + "\n";
+			}
+			
+			_content += "edgedef>node1 VARCHAR,node2 VARCHAR,weight INT\n";
+			
+			for(var i = 0; i < _edges.length;i++) {
+				_content += _edges[i];
+			}
+			
+			makeDownload("similarity_net.gdf",_content);
+		}
+	
+	
+		function makeDownload(filename, text) {
+			
+			var element = document.createElement("a");
+			element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+			element.setAttribute("download", filename);
+			element.setAttribute("id", "vis_downloader");
+			
+			element.style.display = 'none';
+			document.body.appendChild(element);
+			
+			document.getElementById("vis_downloadbutton").style.display = "block";
+		}
+		
+
+	
+	
+	</script>
+	
+</head>
+
+<body>
+
+	<h1>SimilarityNet</h1>
+
+	<p>Uses this formula: https://en.wikipedia.org/wiki/Cosine_similarity</p>
+
+	<form id="vis_pastearea" onsubmit="doPaste(); return false;">
+		<p><textarea id="vis_textarea"></textarea></p>
+		<p><input type="submit" value="parse data and create similarity matrix" /></p>
+	</form>
+
+	<p id="vis_table"></p>
+	
+	<p id="vis_download">
+		<input type="button" id="vis_downloadbutton" onclick="document.getElementById('vis_downloader').click()" value="download cosine similarity network file" />
+	</p>
+
+	
+</body>
+</html>
+
+                                                            
+                                                            
