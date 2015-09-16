@@ -60,8 +60,6 @@
 		
 		
 		function doVectors(_vectors) {
-
-			console.log(_vectors);
 			
 			var _edges = [];
 			
@@ -88,7 +86,6 @@
 					_similarity = parseInt(_similarity * 1000);
 					
 					_edges[_edges.length] = i + "," + j + "," + _similarity + "\n";
-					console.log(i + "," + j + "," + _similarity);
 				}
 			}
 			
@@ -166,7 +163,7 @@
 
 	<form id="vis_pastearea" onsubmit="doPaste(); return false;">
 		<p><textarea id="vis_textarea"></textarea></p>
-		<p><input type="submit" value="parse data and create similarity matrix" /></p>
+		<p><input type="submit" value="parse data and calculate similarity matrix" /></p>
 	</form>
 
 	<p id="vis_table"></p>
